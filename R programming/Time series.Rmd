@@ -1,0 +1,64 @@
+---
+title: "시계열 분석을 이용한 배추 가격 예측"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(imputeTS)
+library(dplyr)
+library(readxl)
+library(zoo)
+library(TTR)
+library(forecast)
+library(tseries)
+library(forecast)
+library(mFilter)
+
+```
+<hr>
+**2010.04.03 ~ 2020.04.02 의 배추 가격**
+```{r}
+setwd("C://Users/jinny/Desktop/R/")
+t_Data <- read.csv('no_29_csv.csv', header=TRUE)
+
+```
+
+
+
+**선형보간법**<br/>
+선형보간법을 이용해 비어있는 값들을 채워 연속적인 10년치의 데이터 생성
+```{r}
+t_data2<-t_Data[,2]
+t_data2[t_data2==0]<-NA
+t_data3<-msts(t_data2,seasonal.periods = c(365.25/4,365.25))
+t_Bdata<-na_interpolation(t_data3)
+autoplot(t_Bdata)
+```
+
+
+
+**계절별 주기에 따른 예측**<br/>
+계졀별 주기가 있다고 가정시 예측과정
+```{r}
+M<-decompose(t_Bdata)
+trend<-na_interpolation(M$trend)
+t_m_trend<-t_Bdata-trend
+t_data_t<-msts(t_m_trend,seasonal.periods = c(365.25/4,365.25))
+autoplot(t_data_t)
+
+
+```
+<hr>
+**예측한 결과**
+```{r}
+t_forecast<-stlf(t_data_t+trend)
+autoplot(t_forecast)
+```
+<br/><br/>
+**6월 17일 부터 6월 30일의 예측값**
+```{r}
+t_forecast$mean[71:88]
+
+```

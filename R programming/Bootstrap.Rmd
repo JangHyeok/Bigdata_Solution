@@ -1,0 +1,149 @@
+---
+title: "붓스트랩을 이용한 배추 가격 예측"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(forecast)
+library(boot)
+
+library(imputeTS)
+library(dplyr)
+library(readxl)
+library(zoo)
+library(TTR)
+library(tseries)
+library(forecast)
+library(mFilter)
+
+```
+
+<hr>
+**2010.04.03 ~ 2020.04.02 의 배추 가격**
+```{r echo=T, fig.width=10, fig.height=5}
+setwd("C://Users/jinny/Desktop/R/")
+
+b_data<-read.csv('no_29_csv.csv', header=TRUE)
+
+b_hdata<-b_data[ ,2]
+
+b_hdata_na<-b_hdata
+
+b_hdata_na[b_hdata==0]<-NA
+
+
+#선형 보간법을 이용해 결측치를 채움
+b_hdata_lin<-na.interp(b_hdata_na)
+
+par(mfrow=c(1,2))
+plot(ts(b_hdata_na), main="결측치가 있는 그래프", ylab="배추 가격")
+plot(b_hdata_lin, main="선형 보간법을 통해 결측치를 채운 그래프", ylab="배추 가격")
+
+
+
+#1. 일별 자료 생성
+day.high<-matrix(0, nrow=365, ncol=10)
+
+for (i in 0:9) {
+  for (j in 1:365) {
+    day.high[j, (i+1)]<-b_hdata_lin[j + (i*365)] 
+  }
+}
+
+
+#2. 붓스트랩 200번 반복
+theta.hat.high<-matrix(0, nrow=365, ncol=200)
+
+set.seed(12345)
+
+for (b in 1:200) {
+  for (j in 1:365) {
+    index<-sample(1:10, size=10, replace=TRUE)
+    
+    data<-day.high[j, index]
+    
+    theta.hat.high[j, b]<-mean(data)
+  }
+}
+
+m.theta.hat.high<-numeric(365)
+se.theta.hat.high<-numeric(365)
+
+for (i in 1:365) {
+  m.theta.hat.high[i]<-mean(theta.hat.high[i, ])
+  se.theta.hat.high[i]<-sd(theta.hat.high[i, ])
+}
+
+par(mfrow=c(1,1))
+plot(m.theta.hat.high, type="l", xlab="day", ylab="배추 가격", main="4월부터 1년 간의 배추의 가격 추이")
+
+hist(theta.hat.high[1, ], prob=TRUE, xlab="배추 가격", ylab="확률 밀도", main="배추 가격의 분포")
+
+
+
+mean.ft<-function(data, index) {
+  m<-mean(data[index])
+  
+  return (m)
+}
+
+
+day1.high<-day.high[1, ]
+
+set.seed(12345)
+
+obj<-boot(data=day1.high, statistic=mean.ft, R=2000)
+ci<-boot.ci(obj, type=c("norm", "basic", "perc"))
+
+
+
+```
+
+
+<hr>
+
+
+**붓스트랩 추정값(단위 : 원)**
+```{r echo=F}
+obj$t0
+
+```
+1년 간의 배추 가격의 평균 추정값
+
+<br/>
+**정규 붓스트랩 신뢰구간**
+```{r echo=F}
+aa<-as.numeric(ci$normal[1,2])
+bb<-as.numeric(ci$normal[1,3])
+
+cat("[", aa, ", ", bb, "]")
+
+```
+표본의 크기가 충분히 클 때 근사적 표준정규분포를 이용한 95% 신뢰구간
+
+
+<br/>
+**기본 붓스트랩 신뢰구간**
+```{r echo=F}
+a<-as.numeric(ci$basic[1,4])
+b<-as.numeric(ci$basic[1,5])
+
+cat("[", a, ", ", b, "]")
+
+```
+**추정값-모수**의 경험적 분포를 이용한 95% 신뢰구간
+
+<br/>
+**백분위수 붓스트랩 신뢰구간**
+```{r echo=F}
+aaa<-as.numeric(ci$percent[1,4])
+bbb<-as.numeric(ci$percent[1,5])
+
+cat("[", aaa, ", ", bbb, "]")
+
+```
+생성된 표본의 추정값의 경험적 분포를 이용한 95% 신뢰구간 
+
+<br/>

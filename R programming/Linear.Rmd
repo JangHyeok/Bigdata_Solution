@@ -1,0 +1,102 @@
+---
+title: "회귀분석을 이용한 배추 가격 예측"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(corrplot)
+library(dplyr)
+
+```
+
+<hr>
+
+```{r echo=T}
+setwd("C://Users/jinny/Desktop/R/")
+
+data<-read.csv('all_2006_2020_csv.csv', header=T)
+
+##변수명 바꾸기
+colnames(data)<-c("date", "mean_temp", "min_temp", "max_temp", "dayrain",
+                  "wind", "wet", "sunhour", "sunenergy", "groundtemp",
+                  "minice", "wet0.5", "ground0.01", "highprice", "midprice",
+                  "meanprice", "output", "cpi")
+
+
+#1. 평균기온의 결측치(4개) -> 평균으로 채움
+data$mean_temp[is.na(data$mean_temp)]<-mean(data$mean_temp, na.rm=T)
+
+#2. 강수량(3398개) -> 비가 오지 않았으므로 0으로 채움
+data$dayrain[is.na(data$dayrain)]<-0
+
+#3. 평균 풍속(10개) -> 평균으로 채움
+data$wind[is.na(data$wind)]<-mean(data$wind, na.rm=T)
+
+#4. 평균 상대습도(4개) -> 평균으로 채움
+data$wet[is.na(data$wet)]<-mean(data$wet, na.rm=T)
+
+#5. 합계 일조시간(1개) -> 평균으로 채움
+data$sunhour[is.na(data$sunhour)]<-mean(data$sunhour, na.rm=T)
+
+#6. 합계 일사량(2개) -> 평균으로 채움
+data$sunenergy[is.na(data$sunenergy)]<-mean(data$sunenergy, na.rm=T)
+
+#7. 1 ~ 4월의 데이터만 가져옴
+data_no<-na.omit(data)
+
+model1<-lm(highprice~mean_temp+min_temp+max_temp+dayrain+wet
+                     +sunenergy+minice+ground0.01+log(output)+log(cpi), data=data_no)
+```
+
+<br/>
+**회귀 모형의 요약**
+```{r echo=T}
+summary(model1)
+```
+회귀 모형의 설명력은 0.27이다.
+
+<br/>
+**회귀 모형의 그래프**
+```{r echo=T}
+par(mfrow=c(2,2))
+plot(model1)
+```
+<br/>
+1. 좌측 상단의 그래프는 빨간 선이 수평에 가까울수록 모델이 괜찮음을 나타낸다.
+<br/>
+2. 우측 상단의 그래프가 45도 우상향에 가까울수록 모델이 정규성을 따름을 나타낸다.
+<br/>
+3. 좌측 하단의 그래프는 1의 그래프와 마찬가지로 수평에 가까울수록 모델이 의미가 있다.
+<br/>
+4. 우측 하단의 그래프는 이상치를 볼 수 있는 그래프로, 여기선 눈에 띄는 이상치는 없다.
+
+<br/>
+<br/>
+**상관계수 그래프**
+```{r echo=T}
+final_no_cor<-cor(data_no[,-1])
+
+corrplot(final_no_cor, method="circle")
+```
+<br/>
+원이 크기가 크고 색이 진할수록 각 변수 간의 상관계수가 높음을 의미한다.
+<br/>
+
+
+
+<hr>
+
+**6월 17일의 배추 가격 예측값**
+```{r echo=F}
+predictft<-function(a, b, c, d, e, f, g, h, i, j) {
+  return (-28777.818 + a*364.548 + b*443.293 + c*-321.471 + d*37.622
+          + e*30.152 + f*148.003 + g*-551.395 + h*76.691 + log(i)*-1098.165 + log(j)*9889.213)
+}
+```
+
+```{r echo=T}
+predictft(12, 4.4, 19.9, 0, 38.1, 24.74, 2.8, 41.33, 46550, 105.79)
+```
+
+
