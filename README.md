@@ -4,6 +4,8 @@
 
 주제 : 통계 데이터를 기반한 농식품 빅데이터 솔루션 개발
 
+<img src="https://raw.githubusercontent.com/JangHyeok/Bigdata_Solution/master/team.png" width="90%"></img>
+
 ***************************************************************
 
 # 멘토 : 
