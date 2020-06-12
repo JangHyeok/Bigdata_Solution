@@ -6,6 +6,9 @@
 
 <img src="https://raw.githubusercontent.com/JangHyeok/Bigdata_Solution/master/team.png" width="90%"></img>
 
+<img src="https://raw.githubusercontent.com/JangHyeok/Bigdata_Solution/master/bigdata.jpg" width="90%"></img>
+Python TensorFlow 기반의 선형회귀모델, 시계열 ARIMA모델 및 R Programming 기반의 Bootstrap 모델, 선형회귀모델, 시계열ARIMA모델을 이용하여 2006년~2020년 배추가격을 학습시킨 후 향후 배추가격을 예측합니다.
+
 ***************************************************************
 
 # 멘토 : 
