@@ -17,7 +17,7 @@ Python TensorFlow 기반의 선형회귀모델, 시계열 ARIMA모델 및 R Prog
 # 팀원 : 
        강석민(경북대학교/ 컴퓨터학부)
        
-       [김동빈](https://github.com/goldeneastlight/)(경북대학교/ 컴퓨터학부)
+       김동빈(경북대학교/ 컴퓨터학부)
        
        김보성(경북대학교/ 컴퓨터학부)
        
